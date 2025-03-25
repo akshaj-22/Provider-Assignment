@@ -1,0 +1,661 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Consultation API",
+      "version": "1.0.0",
+      "description": "API for managing medical consultations"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:5000",
+        "description": "Local development server"
+      }
+    ],
+    "paths": {
+      "/api/license/check-license-expiry": {
+      "get": {
+        "summary": "Check and notify providers with expired licenses",
+        "description": "Fetches all providers, checks if their medical license has expired, and sends email notifications to the corresponding providers.",
+        "tags": ["Providers"],
+        "responses": {
+          "200": {
+            "description": "License expiry check completed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "License expiry check completed."
+                    },
+                    "expired_providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider_id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "provider_name": {
+                            "type": "string",
+                            "example": "Dr. John Doe"
+                          },
+                          "email": {
+                            "type": "string",
+                            "example": "john.doe@example.com"
+                          },
+                          "license_expiry_date": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-03-01"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+      "/api/consultations": {
+        "post": {
+          "summary": "Book a consultation for a patient",
+          "description": "Assigns an available provider based on the patient's consultation reason and schedules a consultation.",
+          "tags": ["Consultations"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["patient_id", "date", "time", "priority"],
+                  "properties": {
+                    "patient_id": {
+                      "type": "integer",
+                      "example": 123
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2025-03-21"
+                    },
+                    "time": {
+                      "type": "string",
+                      "example": "10:00 AM"
+                    },
+                    "priority": {
+                      "type": "string",
+                      "enum": ["normal", "urgent"],
+                      "example": "normal"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Consultation booked successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Consultation booked successfully"
+                      },
+                      "consultation": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "patient_id": {
+                            "type": "integer",
+                            "example": 123
+                          },
+                          "provider_id": {
+                            "type": "integer",
+                            "example": 456
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-03-21"
+                          },
+                          "time": {
+                            "type": "string",
+                            "example": "10:00 AM"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "Scheduled"
+                          },
+                          "priority": {
+                            "type": "string",
+                            "example": "normal"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "No available providers or scheduling conflict",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "All providers are currently busy at this time. Please choose another time."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Patient or provider not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Patient not found"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Internal Server Error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+          "summary": "Retrieve all consultations",
+          "description": "Fetches a list of all consultations.",
+          "tags": ["Consultations"],
+          "responses": {
+            "200": {
+              "description": "A list of consultations.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "patient_id": {
+                          "type": "integer",
+                          "example": 5
+                        },
+                        "provider_id": {
+                          "type": "integer",
+                          "example": 3
+                        },
+                        "date": {
+                          "type": "string",
+                          "format": "date",
+                          "example": "2025-03-21"
+                        },
+                        "time": {
+                          "type": "string",
+                          "example": "10:00 AM"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "Scheduled"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/consultations/reminder": {
+        "get": {
+          "summary": "Send reminders for upcoming consultations",
+          "description": "Checks for consultations scheduled for tomorrow and sends email reminders to providers.",
+          "tags": ["Consultations"],
+          "responses": {
+            "200": {
+              "description": "Reminder emails sent successfully or no consultations for tomorrow.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Reminder emails sent successfully."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Internal Server Error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/consultations/{id}": {
+        "put": {
+          "summary": "Update a consultation",
+          "description": "Reschedules a consultation by updating the date, time, and priority.",
+          "tags": ["Consultations"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "description": "ID of the consultation to update",
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2025-03-20"
+                    },
+                    "time": {
+                      "type": "string",
+                      "example": "10:00 AM"
+                    },
+                    "priority": {
+                      "type": "string",
+                      "example": "urgent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Consultation updated successfully"
+            },
+            "400": {
+              "description": "Invalid input (e.g., incorrect date format)"
+            },
+            "404": {
+              "description": "Consultation not found"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete a consultation",
+          "description": "Deletes a consultation by ID and notifies the assigned provider.",
+          "tags": ["Consultations"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "The ID of the consultation to be deleted."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultation deleted successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Consultation deleted successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Consultation not found.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Consultation not found"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal Server Error.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Internal Server Error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/consultations/missed/{consultationId}": {
+        "put": {
+          "summary": "Mark a consultation as missed",
+          "description": "Updates the status of a consultation to \"Missed\" and notifies the provider.",
+          "tags": ["Consultations"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "consultationId",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "The ID of the consultation to mark as missed."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultation marked as missed, provider notified.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Consultation already marked as missed."
+            },
+            "404": {
+              "description": "Consultation or provider not found."
+            },
+            "500": {
+              "description": "Internal server error."
+            }
+          }
+        }
+      },
+      "/api/consultations/upload": {
+        "post": {
+          "summary": "Upload a patient document to S3 and notify the provider",
+          "tags": ["Documents"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "consultation_id": {
+                      "type": "integer",
+                      "description": "ID of the consultation"
+                    },
+                    "patient_id": {
+                      "type": "integer",
+                      "description": "ID of the patient"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "Date of document submission (YYYY-MM-DD)"
+                    },
+                    "document_type": {
+                      "type": "string",
+                      "description": "Type of the document"
+                    },
+                    "document": {
+                      "type": "string",
+                      "format": "binary",
+                      "description": "File to upload"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Document uploaded successfully"
+            },
+            "400": {
+              "description": "No document uploaded or missing fields"
+            },
+            "404": {
+              "description": "Consultation not found"
+            },
+            "500": {
+              "description": "Internal server error"
+            }
+          }
+        }
+      },
+      "/api/consultations/{consultation_id}/status": {
+        "put": {
+          "summary": "Update Consultation Status to Completed",
+          "description": "Marks a consultation as completed without authentication.",
+          "tags": ["Consultations"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "consultation_id",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "ID of the consultation to update."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultation marked as completed.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Consultation marked as completed"
+                      },
+                      "consultation": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "provider_id": {
+                            "type": "integer"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "Completed"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Consultation not found"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/api/consultations/consultation-summary/{provider_id}/{date}": {
+        "get": {
+          "summary": "Get consultation summary for a provider on a given date.",
+          "description": "Fetches all consultations for a specific provider on a given date and emails the summary.",
+          "tags": ["Consultations"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "provider_id",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "ID of the provider."
+            },
+            {
+              "in": "path",
+              "name": "date",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "date"
+              },
+              "description": "Date for which the summary is needed (YYYY-MM-DD)."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultation summary sent successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Consultation summary sent successfully"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "example": "Consultation Summary for Dr. John Doe on 2025-03-25"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "No consultations found or provider not found."
+            },
+            "500": {
+              "description": "Internal Server Error."
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {},
+      "securitySchemes": {}
+    }
+  }
